@@ -8,24 +8,29 @@ def start_screen(stdscr):
     stdscr.refresh()
     stdscr.getkey()
     
+def display_text(stdscr, target, current, wpm=0):
+    stdscr.addstr(target)
+        
+    # Display every character the user has typed directly on top of the target text
+    for i, char in enumerate(current):
+        correct_char = target[i]
+        color = curses.color_pair(1)
+        # Display the text as red if incorrect
+        if char != correct_char:
+            color = curses.color_pair(2)
+        
+        stdscr.addstr(0, i, char, color)
+    
 def wpm_test(stdscr):
     target_text = "This is some test text!"
     # List to store what the user types
     current_text = []
     
-    stdscr.clear()
-    stdscr.addstr(target_text)
-    
     while True:
         # Screen needs to be constantly clear to avoid writing words on top of each other
         stdscr.clear()
-        stdscr.addstr(target_text)
-        
-        # Display every character the user has typed as green
-        for char in current_text:
-            stdscr.addstr(char, curses.color_pair(1))
+        display_text(stdscr, target_text, current_text)
         stdscr.refresh()
-        
         
         # Store the key that the user types and add to list
         key = stdscr.getkey()
