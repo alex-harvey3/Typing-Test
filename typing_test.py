@@ -5,14 +5,33 @@ import time
 def start_screen(stdscr):
     stdscr.clear()
     stdscr.addstr("Welcome to the typing test!")
-    stdscr.addstr("\nPress any key to begin!")
+    stdscr.addstr("\nChoose a difficulty! Easy (E), Intermediate (I), or Hard (H): ")
     stdscr.refresh()
-    stdscr.getkey()
+    difficulty = stdscr.getkey()
+    
+    # Choose the test based on difficulty
+    if difficulty == "E":
+        with open("easy.txt", "r") as file:
+            target_text = file.read().strip()
+    elif difficulty == "I":
+        with open("intermediate.txt", "r") as file:
+            target_text = file.read().strip()
+    elif difficulty == "H":
+        with open("hard.txt", "r") as file:
+            target_text = file.read().strip()
+    else:
+        print("Invalid choice")
+        target_text = ""
+    
+    return target_text
+        
     
 def display_text(stdscr, target, current, wpm=0):
     stdscr.addstr(target)
     # Display words per minute one line under the target text
-    stdscr.addstr(1, 0, f"WPM: {wpm}")
+    stdscr.addstr(4, 0, f"WPM: {wpm}")
+    height, width = stdscr.getmaxyx()
+    increment = 0
         
     # Display every character the user has typed directly on top of the target text
     for i, char in enumerate(current):
@@ -21,11 +40,15 @@ def display_text(stdscr, target, current, wpm=0):
         # Display the text as red if incorrect
         if char != correct_char:
             color = curses.color_pair(2)
+        print("i: ", i)
+        print("width: ", width)
+        if i >= width:
+            stdscr.addstr(1, i - (i-increment), char, color)
+            increment = increment + 1
+        else:
+            stdscr.addstr(0, i, char, color)
     
-        stdscr.addstr(0, i, char, color)
-    
-def wpm_test(stdscr):
-    target_text = "This is some test text!"
+def wpm_test(stdscr, target_text):
     # List to store what the user types
     current_text = []
     wpm = 0
@@ -42,7 +65,7 @@ def wpm_test(stdscr):
         display_text(stdscr, target_text, current_text, wpm)
         stdscr.refresh()
         
-        # CHeck if user has finished
+        # Check if user has finished. ONly ends if everything typed is correct.
         if "".join(current_text) == target_text:
             stdscr.nodelay(False)
             break
@@ -76,10 +99,10 @@ def main(stdscr):
     curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
     
     # Call the start screen function
-    start_screen(stdscr)
+    target = start_screen(stdscr)
     while True:
         # Call the test function
-        wpm_test(stdscr)
+        wpm_test(stdscr, target)
         
         stdscr.addstr(2, 0, "Test Completed! Press any key to continue.")
         key = stdscr.getkey()
