@@ -77,10 +77,15 @@ def main(stdscr):
     
     # Call the start screen function
     start_screen(stdscr)
-    # Call the test function
-    wpm_test(stdscr)
-    
-    stdscr.addstr(2, 0, "Test Completed! Press any key to continue.")
+    while True:
+        # Call the test function
+        wpm_test(stdscr)
+        
+        stdscr.addstr(2, 0, "Test Completed! Press any key to continue.")
+        key = stdscr.getkey()
+        
+        if ord(key) == 27:
+            break
  
 # Intitializes curses when called   
 wrapper(main)
