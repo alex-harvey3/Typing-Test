@@ -1,5 +1,6 @@
 import curses
 from curses import wrapper
+import time
 
 def start_screen(stdscr):
     stdscr.clear()
@@ -10,6 +11,8 @@ def start_screen(stdscr):
     
 def display_text(stdscr, target, current, wpm=0):
     stdscr.addstr(target)
+    # Display words per minute one line under the target text
+    stdscr.addstr(1, 0, f"WPM: {wpm}")
         
     # Display every character the user has typed directly on top of the target text
     for i, char in enumerate(current):
@@ -18,22 +21,37 @@ def display_text(stdscr, target, current, wpm=0):
         # Display the text as red if incorrect
         if char != correct_char:
             color = curses.color_pair(2)
-        
+    
         stdscr.addstr(0, i, char, color)
     
 def wpm_test(stdscr):
     target_text = "This is some test text!"
     # List to store what the user types
     current_text = []
+    wpm = 0
+    # Start tracking time
+    start_time = time.time()
+    stdscr.nodelay(True)
     
     while True:
+        time_elapsed = max(time.time() - start_time, 1)
+        # Assuming an average word length of 5 characters
+        wpm = round((len(current_text) / (time_elapsed / 60)) / 5)
         # Screen needs to be constantly clear to avoid writing words on top of each other
         stdscr.clear()
-        display_text(stdscr, target_text, current_text)
+        display_text(stdscr, target_text, current_text, wpm)
         stdscr.refresh()
         
-        # Store the key that the user types and add to list
-        key = stdscr.getkey()
+        # CHeck if user has finished
+        if "".join(current_text) == target_text:
+            stdscr.nodelay(False)
+            break
+        
+        try:
+            # Store the key that the user types and add to list. Could cause an exception if the user doesn't press a key.
+            key = stdscr.getkey()
+        except:
+            continue
         
         # Exit the app if the escape key is pressed
         if ord(key) == 27:
@@ -44,7 +62,7 @@ def wpm_test(stdscr):
         if key in ("KEY_BACKSPACE", "\b", "\x7f"):
             if len(current_text) > 0:
                 current_text.pop()
-        else:
+        elif len(current_text) < len(target_text):
             current_text.append(key)
         
         
@@ -61,6 +79,8 @@ def main(stdscr):
     start_screen(stdscr)
     # Call the test function
     wpm_test(stdscr)
+    
+    stdscr.addstr(2, 0, "Test Completed! Press any key to continue.")
  
 # Intitializes curses when called   
 wrapper(main)
